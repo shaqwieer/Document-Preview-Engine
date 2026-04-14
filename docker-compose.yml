@@ -1,0 +1,103 @@
+version: "3.9"
+
+services:
+
+  # ─────────────────────────────────────────────────────────────
+  # 1. ONLYOFFICE Document Server
+  #    Renders PPTX / DOCX / XLSX natively in the browser
+  #    Fully offline after first docker pull
+  #    Image size: ~1.5 GB (download once, runs forever offline)
+  #
+  #    Volume paths confirmed from official Docker Hub docs:
+  #      /var/www/onlyoffice/Data  ← certificates & config
+  #      /var/log/onlyoffice       ← logs
+  # ─────────────────────────────────────────────────────────────
+  onlyoffice:
+    image: onlyoffice/documentserver:latest
+    container_name: edu_onlyoffice
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      # JWT — must match the secret in .NET API
+      - JWT_ENABLED=true
+      - JWT_SECRET=${ONLYOFFICE_JWT_SECRET}
+      - JWT_HEADER=Authorization
+      - JWT_IN_BODY=true
+      # Disable WOPI (SharePoint integration — not needed)
+      - WOPI_ENABLED=false
+      # Disable HTTPS redirect (we run HTTP on local network)
+      - ONLYOFFICE_HTTPS_HSTS_ENABLED=false
+    volumes:
+      # Official paths from Docker Hub docs
+      - onlyoffice_data:/var/www/onlyoffice/Data
+      - onlyoffice_logs:/var/log/onlyoffice
+      # Arabic & custom fonts — drop .ttf files in ./onlyoffice/fonts/
+      - ./onlyoffice/fonts:/usr/share/fonts/custom:ro
+    networks:
+      - edu_network
+
+  # ─────────────────────────────────────────────────────────────
+  # 2. .NET 8 API Backend
+  #    Manages file uploads, storage, and JWT signing
+  #    ONLYOFFICE fetches files directly from this container
+  #    using the internal Docker network (http://edu_api:80)
+  # ─────────────────────────────────────────────────────────────
+  dotnet_api:
+    build:
+      context: ./dotnet-api
+      dockerfile: Dockerfile
+    container_name: edu_api
+    restart: unless-stopped
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      # .NET 8 containers default to port 8080 — override back to 80
+      # so the nginx proxy (http://dotnet_api:80) and port mapping (5000:80) stay correct
+      - ASPNETCORE_HTTP_PORTS=80
+      # Internal URL — used by ONLYOFFICE container to fetch files
+      - ONLYOFFICE__ServerUrl=http://onlyoffice:80
+      # Public URL — used by the student's browser to load the viewer JS
+      - ONLYOFFICE__PublicUrl=http://localhost:8080
+      # Callback URL — ONLYOFFICE uses this to fetch original files
+      # Must be reachable from inside the onlyoffice container
+      - ONLYOFFICE__CallbackBaseUrl=http://edu_api:80
+      - ONLYOFFICE__JwtSecret=${ONLYOFFICE_JWT_SECRET}
+      - Files__StoragePath=/app/storage
+    volumes:
+      # Bind mount so files survive container restarts
+      - ./storage:/app/storage
+    depends_on:
+      - onlyoffice
+    networks:
+      - edu_network
+
+  # ─────────────────────────────────────────────────────────────
+  # 3. Vue 3 Frontend
+  #    Built with Vite, served via Nginx
+  #    Students access this on http://SERVER_IP:3000
+  # ─────────────────────────────────────────────────────────────
+  vue_frontend:
+    build:
+      context: ./vue-frontend
+      dockerfile: Dockerfile
+    container_name: edu_vue
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - dotnet_api
+    networks:
+      - edu_network
+
+# Named volumes — managed by Docker, survive container restarts
+volumes:
+  onlyoffice_data:
+  onlyoffice_logs:
+
+# All 3 containers talk to each other on this internal network
+# Nothing is exposed to the internet — local network only
+networks:
+  edu_network:
+    driver: bridge

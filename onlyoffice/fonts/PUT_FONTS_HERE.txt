@@ -1,0 +1,21 @@
+PUT YOUR ARABIC FONTS HERE
+=========================
+
+Drop .ttf or .otf font files in this folder before running docker compose up.
+
+ONLYOFFICE will automatically pick them up.
+
+Recommended fonts for Arabic/Egyptian educational content:
+- Cairo.ttf          (Google Fonts — free)
+- Tajawal.ttf        (Google Fonts — free)
+- Almarai.ttf        (Google Fonts — free)
+- Amiri.ttf          (Google Fonts — free)
+
+Download from:
+  https://fonts.google.com
+
+For Windows system fonts (Times New Roman, Arial, etc.):
+  Copy from C:\Windows\Fonts\ on any Windows machine
+
+After adding fonts, restart ONLYOFFICE:
+  docker compose restart onlyoffice

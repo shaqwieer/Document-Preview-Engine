@@ -1,0 +1,17 @@
+# Secrets — NEVER commit
+.env
+
+# Uploaded files
+storage/
+
+# Node
+vue-frontend/node_modules/
+vue-frontend/dist/
+
+# .NET build output
+dotnet-api/bin/
+dotnet-api/obj/
+
+# OS
+.DS_Store
+Thumbs.db
