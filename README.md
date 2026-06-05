@@ -1,28 +1,32 @@
 # ONLYOFFICE + .NET 8 + Vue 3 — Fully Offline
 
-================================================================
- WHAT YOU GET
-================================================================
+Self-hosted document viewing for PPTX, DOCX, XLSX, and PDF using ONLYOFFICE Community Edition, ASP.NET Core 8, and Vue 3.
 
-- Upload PPTX (all versions), DOCX, XLSX, PDF
-- Users view files in browser exactly like Microsoft Office
-- 100% offline — no internet calls after setup
-- Free (ONLYOFFICE Community Edition, AGPLv3)
-- Arabic RTL support built-in
+---
 
-================================================================
- FOLDER STRUCTURE
-================================================================
+## 🚀 What You Get
 
+* Upload and preview **PPTX**, **DOCX**, **XLSX**, and **PDF**
+* View documents directly in the browser with Microsoft Office–compatible rendering
+* Fully offline after initial setup
+* Free and open-source (**ONLYOFFICE Community Edition - AGPLv3**)
+* Built-in Arabic RTL support
+* Custom Arabic fonts support
+
+---
+
+## 📁 Folder Structure
+
+```text
 edu-platform/
-├── docker-compose.yml            ← main entry point
-├── .env.example                  ← copy to .env and fill in
-├── storage/                      ← uploaded files live here (auto-created)
+├── docker-compose.yml            # Main entry point
+├── .env.example                  # Copy to .env and fill values
+├── storage/                      # Uploaded files (auto-created)
 │
 ├── onlyoffice/
-│   └── fonts/                    ← put .ttf Arabic fonts here
+│   └── fonts/                    # Optional Arabic fonts (.ttf)
 │
-├── dotnet-api/                   ← .NET 8 ASP.NET Core API
+├── dotnet-api/
 │   ├── Dockerfile
 │   ├── Program.cs
 │   ├── appsettings.json
@@ -32,7 +36,7 @@ edu-platform/
 │   └── Services/
 │       └── OnlyOfficeService.cs
 │
-└── vue-frontend/                 ← Vue 3 + Vite frontend
+└── vue-frontend/
     ├── Dockerfile
     ├── nginx.conf
     ├── package.json
@@ -42,132 +46,374 @@ edu-platform/
         ├── main.js
         ├── App.vue
         └── components/
-            ├── FileViewer.vue    ← ONLYOFFICE viewer wrapper
-            └── FileUpload.vue    ← drag & drop uploader
+            ├── FileViewer.vue
+            └── FileUpload.vue
+```
 
-================================================================
- STEP 1 — Prerequisites (install once)
-================================================================
+---
 
-Install Docker Desktop:
-  Windows: https://docs.docker.com/desktop/install/windows-install/
-  Linux:   sudo apt install docker.io docker-compose
+## 📦 Prerequisites
 
-Verify:
-  docker --version
-  docker compose version
+### Install Docker
 
-================================================================
- STEP 2 — First time setup
-================================================================
+#### Windows
 
-# 1. Copy this project to your server
-#    (USB drive, LAN copy, whatever — no internet needed after this)
+Install Docker Desktop.
 
-# 2. Create your .env file
+#### Ubuntu / Debian
+
+```bash
+sudo apt install docker.io docker-compose
+```
+
+### Verify Installation
+
+```bash
+docker --version
+docker compose version
+```
+
+---
+
+## ⚙️ First-Time Setup
+
+### 1. Copy the Project
+
+Transfer the project to your target server.
+
+---
+
+### 2. Create Environment File
+
+```bash
 cp .env.example .env
+```
 
-# 3. Edit .env — change the JWT secret to any long random string
-#    Example:
-#    ONLYOFFICE_JWT_SECRET=MyEduPlatform_SuperSecretKey_2024_ChangeThis!
+Edit `.env` and set a strong JWT secret:
 
-# 4. (Optional but recommended) Add Arabic fonts
-#    Copy Cairo.ttf, Tajawal.ttf, etc. into:
-#    ./onlyoffice/fonts/
-#    ONLYOFFICE will pick them up automatically
+```env
+ONLYOFFICE_JWT_SECRET=MyEduPlatform_SuperSecretKey_2024_ChangeThis!
+```
 
-# 5. Create the storage directory
+---
+
+### 3. Add Arabic Fonts (Optional)
+
+Copy fonts such as:
+
+* Cairo.ttf
+* Tajawal.ttf
+* NotoSansArabic.ttf
+
+into:
+
+```text
+./onlyoffice/fonts/
+```
+
+Restart ONLYOFFICE after adding fonts.
+
+---
+
+### 4. Create Storage Directory
+
+```bash
 mkdir -p storage
+```
 
-================================================================
- STEP 3 — Start everything
-================================================================
+---
 
+## ▶️ Start Everything
+
+```bash
 docker compose up -d
+```
 
-# First run downloads images — takes 5-10 minutes
-# Subsequent runs start in ~10 seconds
+### First Run
 
-# Check all 3 containers are running:
+The first startup downloads Docker images and may take **5–10 minutes**.
+
+Subsequent starts usually take only a few seconds.
+
+---
+
+### Verify Containers
+
+```bash
 docker compose ps
+```
 
-# You should see:
-#   edu_onlyoffice   running   0.0.0.0:8080->80/tcp
-#   edu_api          running   0.0.0.0:5000->80/tcp
-#   edu_vue          running   0.0.0.0:3000->80/tcp
+Expected output:
 
-================================================================
- STEP 4 — Open the app
-================================================================
+| Container      | Purpose                    | Port |
+| -------------- | -------------------------- | ---- |
+| edu_onlyoffice | ONLYOFFICE Document Server | 8080 |
+| edu_api        | ASP.NET Core API           | 5000 |
+| edu_vue        | Vue 3 Frontend             | 3000 |
 
-Open your browser:
-  http://localhost:3000
+---
 
-That's it. Upload a PPTX or DOCX and click preview.
+## 🌐 Open the Application
 
-For other machines on same network:
-  http://YOUR_SERVER_IP:3000
+### Local Machine
 
-================================================================
- USEFUL COMMANDS
-================================================================
+```text
+http://localhost:3000
+```
 
-# View logs
+### Other Devices on the Same Network
+
+```text
+http://YOUR_SERVER_IP:3000
+```
+
+Upload a document and click **Preview**.
+
+---
+
+## 🛠 Useful Commands
+
+### View All Logs
+
+```bash
 docker compose logs -f
+```
 
-# View ONLYOFFICE logs only
+### View ONLYOFFICE Logs
+
+```bash
 docker compose logs -f onlyoffice
+```
 
-# Stop everything
+### Stop Everything
+
+```bash
 docker compose down
+```
 
-# Restart one service
+### Restart API
+
+```bash
 docker compose restart dotnet_api
+```
 
-# Rebuild after code changes
+### Rebuild Frontend
+
+```bash
 docker compose up -d --build vue_frontend
+```
+
+### Rebuild API
+
+```bash
 docker compose up -d --build dotnet_api
+```
 
-# Full reset (WARNING: deletes all uploaded files)
+### Full Reset (Deletes Uploaded Files)
+
+```bash
 docker compose down -v
+```
 
-================================================================
- TROUBLESHOOTING
-================================================================
+> ⚠️ Warning: This removes all uploaded documents.
 
-Problem: ONLYOFFICE shows "Download failed"
-Fix: Check that dotnet_api is reachable from the ONLYOFFICE container
-     docker compose exec onlyoffice curl http://dotnet_api:80/api/files
+---
 
-Problem: JWT error in ONLYOFFICE
-Fix: Make sure ONLYOFFICE_JWT_SECRET in .env matches what .NET uses
-     docker compose down && docker compose up -d
+## 🔍 Troubleshooting
 
-Problem: Arabic fonts not rendering correctly
-Fix: Put .ttf files in ./onlyoffice/fonts/ and restart:
-     docker compose restart onlyoffice
+### ONLYOFFICE Shows "Download Failed"
 
-Problem: "File too large" on upload
-Fix: Already set to 200MB in nginx.conf. For bigger files increase:
-     client_max_body_size 500M;  in nginx.conf then rebuild vue_frontend
+Verify the API is reachable from the ONLYOFFICE container:
 
-Problem: Port 8080 or 3000 already in use
-Fix: Change ports in docker-compose.yml:
-     - "9090:80"   instead of "8080:80" for ONLYOFFICE
-     - "4000:80"   instead of "3000:80" for Vue
-     Also update VITE_ONLYOFFICE_PUBLIC_URL in vue-frontend .env
+```bash
+docker compose exec onlyoffice curl http://dotnet_api:80/api/files
+```
 
-================================================================
- GOING TO PRODUCTION 
-================================================================
+---
 
-1. Set server IP in docker-compose.yml environment:
-   - ONLYOFFICE__PublicUrl=http://YOUR_SERVER_IP:8080
-   - Change Cors AllowedOrigins in appsettings.json
+### JWT Errors
 
-2. Add a .env file on each client machine pointing to server:
-   VITE_ONLYOFFICE_PUBLIC_URL=http://YOUR_SERVER_IP:8080
+Ensure the JWT secret matches between ONLYOFFICE and .NET:
 
-3. Users open: http://YOUR_SERVER_IP:3000
+```bash
+docker compose down
+docker compose up -d
+```
 
-================================================================
+---
+
+### Arabic Fonts Not Rendering
+
+Place `.ttf` files in:
+
+```text
+./onlyoffice/fonts/
+```
+
+Then restart ONLYOFFICE:
+
+```bash
+docker compose restart onlyoffice
+```
+
+---
+
+### File Too Large
+
+Increase upload limit inside `nginx.conf`:
+
+```nginx
+client_max_body_size 500M;
+```
+
+Then rebuild the frontend container.
+
+---
+
+### Port Already in Use
+
+Change port mappings in `docker-compose.yml`:
+
+```yaml
+ports:
+  - "9090:80"
+```
+
+instead of:
+
+```yaml
+ports:
+  - "8080:80"
+```
+
+For Vue:
+
+```yaml
+ports:
+  - "4000:80"
+```
+
+instead of:
+
+```yaml
+ports:
+  - "3000:80"
+```
+
+Also update:
+
+```env
+VITE_ONLYOFFICE_PUBLIC_URL=http://SERVER_IP:9090
+```
+
+---
+
+## 🚀 Production Deployment
+
+### Update ONLYOFFICE Public URL
+
+```yaml
+environment:
+  - ONLYOFFICE__PublicUrl=http://YOUR_SERVER_IP:8080
+```
+
+---
+
+### Configure CORS
+
+Update `appsettings.json`:
+
+```json
+{
+  "Cors": {
+    "AllowedOrigins": [
+      "http://YOUR_SERVER_IP:3000"
+    ]
+  }
+}
+```
+
+---
+
+### Frontend Environment
+
+Create a frontend `.env`:
+
+```env
+VITE_ONLYOFFICE_PUBLIC_URL=http://YOUR_SERVER_IP:8080
+```
+
+---
+
+### User Access
+
+```text
+http://YOUR_SERVER_IP:3000
+```
+
+---
+
+## 🔒 Recommended Production Enhancements
+
+### Enable HTTPS
+
+Use one of:
+
+* Nginx
+* Traefik
+* Caddy
+
+---
+
+### Restrict Internal Services
+
+Expose ONLY:
+
+* Frontend
+* Reverse Proxy
+
+Keep API and ONLYOFFICE internal when possible.
+
+---
+
+### Backup Storage
+
+Regularly backup:
+
+```text
+/storage
+```
+
+---
+
+### Pin Docker Image Versions
+
+Avoid using `latest` tags in production.
+
+Example:
+
+```yaml
+image: onlyoffice/documentserver:8.2.0
+```
+
+---
+
+## ✨ Features Summary
+
+| Feature            | Supported |
+| ------------------ | --------- |
+| PPTX Viewer        | ✅         |
+| DOCX Viewer        | ✅         |
+| XLSX Viewer        | ✅         |
+| PDF Viewer         | ✅         |
+| Arabic RTL         | ✅         |
+| Offline Operation  | ✅         |
+| Docker Deployment  | ✅         |
+| Custom Fonts       | ✅         |
+| .NET 8 Backend     | ✅         |
+| Vue 3 Frontend     | ✅         |
+| Free & Open Source | ✅         |
+
+---
+
+Built with **ONLYOFFICE Community Edition**, **ASP.NET Core 8**, **Vue 3**, and **Docker Compose**.
